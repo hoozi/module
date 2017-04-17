@@ -3,10 +3,16 @@
  */
 (function(root){
     var _array = [],
+        _noop = function(){},
         _push = _array.push;
     root.module = {
         moduleMap: {},
         define: function(name, deps, factory) {
+            var args = arguments;
+            if(args.length == 2) {
+                factory = deps;
+                deps = [];
+            }
             if(!this.moduleMap[name]) {
                 var module = {
                     name: name,
@@ -31,7 +37,7 @@
                         _push.call(args, _this.use(_this.moduleMap(dep)));
                     }
                 });
-                module.entity = module.factory.apply(null, args)
+                module.entity = module.factory.apply(_noop, args)
             }
             return module.entity;
         }
