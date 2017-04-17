@@ -1,5 +1,5 @@
 /**
- * 不考虑加载的module，包括define，use;
+ * 不考虑加载的module，只包括define，use;
  */
 (function(root){
     var _array = [],
