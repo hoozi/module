@@ -1,5 +1,9 @@
 /**
  * 不考虑加载的module，只包括define，use;
+ * exp:
+ * define(moduleName, [], fn);
+ * define(moduleName, fn);
+ * use(moduleName);
  */
 (function(root){
     var _array = [],
