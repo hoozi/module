@@ -48,52 +48,54 @@
             return module.entity;
         },
         require: function(paths, callback) {
-            var head = doc.getElementsByTagName('head')[0],
-                isIE = document.all && document.compatMode,
-                _this = this;
+            var _this = this;
             for(var i=0; i<paths.length; i++) {
-                var path = paths[i];
-                if(!this.fileMap[path]) {
-                    var script = doc.createElement('script');
-                    script.type = 'text/javascript';
-                    script.async = true;
-                    script.src = path+'.js';
-                    if(isIE) {
-                        script.onreadystatechange = function(){
-                            if(script && (/(loaded|complete)/).test(script.readyState)) {
-                                loadedFn();
-                            }
-                        }
-                    } else {
-                        script.onload = function(){
-                            loadedFn();
-                        }
-                    }
-                    
-                    function loadedFn() {
-                        _this.fileMap[path] = true;
-                        checkAllLoaded();
-                        head.removeChild(script);
-                        script = null;
-                    }
-
-                    head.appendChild(script);
+                var path = paths[i],
+                    head = doc.getElementsByTagName('head')[0];
+                if(!this['fileMap'][path]) {
+                    var node = doc.createElement('script');
+                    node.type = 'text/javascript';
+                    addOnload(node, callback, path);
+                    node.async = true;
+                    node.src = path+'.js';
+                    head.appendChild(node);
                 }
             }
+            function addOnload(node, callback, url) {
+                var supportOnload = 'onload' in node;
 
-            function checkAllLoaded() {
-                var allLoaded = true;
-                for(var i=0;i<paths.length;i++) {
-                    var path = paths[i];
-                    if(!_this.fileMap[path]) {
-                        allLoaded = false;
-                        break;
+                if(supportOnload) {
+                    node.onload = onload;
+                } else {
+                    node.onreadystatechange = function() {
+                        if(/loaded|complete/.test(node.readyState)) {
+                            onload();
+                        }
                     }
                 }
 
-                if(allLoaded) {
-                    callback && callback.call(_noop);
+                function onload() {
+                    _this['fileMap'][url] = true;
+                    node.onload = node.onreadystatechange = null;
+                    head.removeChild(node);
+                    checkAllLoaded();
+                    node = null;
                 }
+
+                function checkAllLoaded() {
+                    var allLoaded = true;
+                    for(var i=0; i<paths.length; i++) {
+                        var path = paths[i];
+                        if(!_this['fileMap'][path]) {
+                            allLoaded = false;
+                            break;
+                        }
+                    }
+                    if(allLoaded) {
+                        callback && callback();
+                    }
+                }
+
             }
         }
     }
